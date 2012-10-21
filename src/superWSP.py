@@ -7,10 +7,10 @@ __author__ = ['Hong Wu<xunzhangthu@gmail.com>']
 from load import LoadInput
 
 class SuperWordSearchPuzzle(Exception):
-  '''SuperWordSearchPuzzle class.'''
-   
+  '''SuperWordSearchPuzzle class.'''  
+  
   def __init__(self, grid, swords, is_wrap):
-    '''Initializes the SuperWordSearch's data.'''
+    '''Initialize the SuperWordSearch's data.'''
     self.rows = len(grid)
     self.cols = len(grid[0])
     self.num_swords = len(swords)
@@ -19,63 +19,80 @@ class SuperWordSearchPuzzle(Exception):
     self.swords = swords
     self.is_wrap = is_wrap
     
-    # Generate ghost_grid
-    part1 = [row[1:] for row in grid[1:]]
-    part2 = grid[1:]
-    part3 = [row[:-1] for row in grid[1:]]
+    # generate the ghost_grid 
+    self.ghost_grid = self.init_ghost_grid()
+    
+    self.ghost_rows = len(self.ghost_grid)
+    self.ghost_cols = len(self.ghost_grid[0])
+     
+    # generate the hash_map 
+    self.hash_map = self.init_hash_map()
+    # generate the ghost_grid_flag
+    self.ghost_grid_flag = self.init_ghost_grid_flag()
+    
 
-    part4 = [row[1:] for row in grid]
-    part5 = grid
-    part6 = [row[:-1] for row in grid]
+  def init_ghost_grid(self):
+    '''Initializes the ghost_grid.'''
+    part1 = [row[1:] for row in self.grid[1:]]
+    part2 = self.grid[1:]
+    part3 = [row[:-1] for row in self.grid[1:]]
 
-    part7 = [row[1:] for row in grid[:-1]]
-    part8 = grid[:-1]
-    part9 = [row[:-1] for row in grid[:-1]]  
+    part4 = [row[1:] for row in self.grid]
+    part5 = self.grid
+    part6 = [row[:-1] for row in self.grid]
+
+    part7 = [row[1:] for row in self.grid[:-1]]
+    part8 = self.grid[:-1]
+    part9 = [row[:-1] for row in self.grid[:-1]]  
     
-    self.ghost_grid = [part1[i] + part2[i] + part3[i] for i in range(self.rows - 1)] + \
-                      [part4[i] + part5[i] + part6[i] for i in range(self.rows)] + \
-                      [part7[i] + part8[i] + part9[i] for i in range(self.rows - 1)] 
-    
-    ghost_rows = len(self.ghost_grid)
-    ghost_cols = len(self.ghost_grid[0])
-    
-    
-    # set is_ghost flag of ghost_grid, to distinguish grid from ghost_grid
-    self.ghost_grid_flag = [[True for j in range(ghost_cols)] for i in range(ghost_rows)]
-    for i in range(ghost_rows):
-      for j in range(ghost_cols):
+    ghost_grid = [part1[i] + part2[i] + part3[i] for i in range(self.rows - 1)] + \
+                 [part4[i] + part5[i] + part6[i] for i in range(self.rows)] + \
+                 [part7[i] + part8[i] + part9[i] for i in range(self.rows - 1)] 
+  
+    return ghost_grid
+       
+  
+  def init_ghost_grid_flag(self):
+    '''set is_ghost flag of ghost_grid, to distinguish grid from ghost_grid'''
+    ghost_grid_flag = [[True for j in range(self.ghost_cols)] for i in range(self.ghost_rows)]
+    for i in range(self.ghost_rows):
+      for j in range(self.ghost_cols):
         origin_i = i + 1 - self.rows
         origin_j = j + 1 - self.cols
         if origin_i + 1 and self.rows - origin_i and origin_j + 1 and self.cols - origin_j:
-          self.ghost_grid_flag[i][j] = False
-    
-    # Generate hash_map for every word in ghost_grid: (Key, Value) <=> (coord, list of coord pairs in at most 8 directions)
-    self.hash_map = {}
-    for i in range(ghost_rows):
-      for j in range(ghost_cols):
+          ghost_grid_flag[i][j] = False
+    return ghost_grid_flag 
+  
+   
+  def init_hash_map(self):
+    '''Initialize hash_map for every word in ghost_grid: (Key, Value) <=> (coord, list of coord pairs in at most 8 directions)'''
+    hash_map = {}
+    for i in range(self.ghost_rows):
+      for j in range(self.ghost_cols):
         tmp = []
         if i and j:
           tmp.append((i - 1, j - 1)) # left up point
           tmp.append((i - 1, j)) # top point
-          if ghost_cols - j - 1:
+          if self.ghost_cols - j - 1:
             tmp.append((i - 1, j + 1)) # right up point
         if j:
           tmp.append((i, j - 1)) # left point
-        if ghost_cols - j - 1:
+        if self.ghost_cols - j - 1:
           tmp.append((i, j + 1)) # right point
-        if ghost_rows - i - 1 and j: 
+        if self.ghost_rows - i - 1 and j: 
           tmp.append((i + 1, j - 1)) # left bottom point
           tmp.append((i + 1, j)) # bottom point
-          if ghost_cols - j - 1:
+          if self.ghost_cols - j - 1:
             tmp.append((i + 1, j + 1)) # bottom right point
-        self.hash_map[(i,j)] = tmp 
-    
-   
+        hash_map[(i,j)] = tmp 
+    return hash_map
+  
+  
   def mapping(self, ghost_grid_point):
     '''
-       Mapping relation between ghost_grid and grid. 
-       Input a coord index and return a coord in original word grid.
-       This function helps to save the space.
+    Mapping relation between ghost_grid and grid. 
+    Input a coord index and return a coord in original word grid.
+    This function helps to save the space.
     '''
     i = ghost_grid_point[0]
     j = ghost_grid_point[1]
@@ -107,8 +124,8 @@ class SuperWordSearchPuzzle(Exception):
   
   def restore_path(self, path):  
     '''
-       Restore the path in original grid using mapping function.
-       Input a path in ghost_grid and return a path in original grid.
+    Restore the path in original grid using mapping function.
+    Input a path in ghost_grid and return a path in original grid.
     '''
     original_path = []
     for indx in path:
@@ -128,8 +145,8 @@ class SuperWordSearchPuzzle(Exception):
      
     # for-loops for every same starting_point in ghost_grid
     # flag to make sure point in original grid.
-    for i in range(len(self.ghost_grid)):
-      for j in range(len(self.ghost_grid[0])):
+    for i in range(self.ghost_rows):
+      for j in range(self.ghost_cols):
         if self.ghost_grid[i][j] == word[0] and self.ghost_grid_flag[i][j] == False: # find starting point in original grid(flag of them are False)
           starting_point = (i, j)
           path = self.search_word(starting_point, word) # Submodule of find_path

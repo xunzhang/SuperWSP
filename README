@@ -1,0 +1,26 @@
+!---------------------------------------------------------------------------------------------------
+!
+!
+!	This is a code package solving a Super-Word-Puzzle.
+!
+!	Usage:
+!		Modified 'input.txt' file, you can also add any other input files if you like.
+!        	Start the puzzle by typing './run.py input.txt' or '$DIR/python run.py input.txt'.
+!        	Have fun.
+!	
+!	Notice:
+!		I use ghost grid in my code. To explain that see the example below:
+!			original grid	  (mapping)	ghost grid
+!							  EFDEFDE 		
+!			    				  HIGHIGH
+!			    ABC		    -->		  BCABCAB
+!			    DEF		    -->		  EFDEFED
+!			    GHI		    -->		  HIGHIGH
+!							  BCABCAB
+!							  EFDEFDE	
+!
+!			   N X M	    -->	        (3N-2) X (3M-2)
+!
+!  	Hong Wu<xunzhangthu@gmail.com>, 2012/10/21
+!
+!---------------------------------------------------------------------------------------------------

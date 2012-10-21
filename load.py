@@ -31,7 +31,10 @@ class LoadInput(Exception):
       (?P<swords>.*)       # pseudo-super words
       \s
       ''', re.VERBOSE|re.DOTALL) 
-
+    
+    if not re.search(pattern, self.content):
+      raise LoadInput('Invalid format of input file!')
+    
     data_dict = re.search(pattern, self.content).groupdict()
 
     grid = data_dict['grid'].split('\n')

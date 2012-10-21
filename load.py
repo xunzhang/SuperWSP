@@ -1,5 +1,10 @@
 #! /usr/bin/python
 # Filename: load.py
+
+"""load.py: class LoadInput helps to load input data."""
+
+__author__ = ['Hong Wu<xunzhangthu@gmail.com>']
+
 import re
 
 class LoadInput(Exception):

@@ -1,14 +1,20 @@
 #! /usr/bin/python
-# Filename: SuperWSP.py
+
+"""superWSP.py: SuperWordSearchPuzzle class for Super Word Search Puzzle Game."""
+
+__author__ = ['Hong Wu<xunzhangthu@gmail.com>']
 
 from load import LoadInput
 
 class SuperWordSearchPuzzle(Exception):
-  
+  '''SuperWordSearchPuzzle class.'''
+   
   def __init__(self, grid, swords, is_wrap):
+    '''Initializes the SuperWordSearch's data.'''
     self.rows = len(grid)
     self.cols = len(grid[0])
     self.num_swords = len(swords)
+    
     self.grid = grid
     self.swords = swords
     self.is_wrap = is_wrap
@@ -33,41 +39,44 @@ class SuperWordSearchPuzzle(Exception):
     ghost_rows = len(self.ghost_grid)
     ghost_cols = len(self.ghost_grid[0])
     
-    # set is_ghost flag of ghost_grid
+    
+    # set is_ghost flag of ghost_grid, to distinguish grid from ghost_grid
     self.ghost_grid_flag = [[True for j in range(ghost_cols)] for i in range(ghost_rows)]
     for i in range(ghost_rows):
       for j in range(ghost_cols):
         origin_i = i + 1 - self.rows
         origin_j = j + 1 - self.cols
-        if origin_i >= 0 and origin_i <= self.rows - 1 and origin_j >= 0 and origin_j <= self.cols - 1:
+        if origin_i + 1 and self.rows - origin_i and origin_j + 1 and self.cols - origin_j:
           self.ghost_grid_flag[i][j] = False
-
-    # Generate hash_map for every word in ghost_grid
-    # Key: coord
-    # Value: list of coord pairs in 8 directions
+    
+    # Generate hash_map for every word in ghost_grid: (Key, Value) <=> (coord, list of coord pairs in at most 8 directions)
     self.hash_map = {}
     for i in range(ghost_rows):
       for j in range(ghost_cols):
         tmp = []
-        if i - 1 >= 0 and j - 1 >= 0:
+        if i and j:
           tmp.append((i - 1, j - 1)) # left up point
           tmp.append((i - 1, j)) # top point
-          if j + 1 <= ghost_cols - 1:
+          if ghost_cols - j - 1:
             tmp.append((i - 1, j + 1)) # right up point
-        if j - 1 >= 0:
+        if j:
           tmp.append((i, j - 1)) # left point
-        if j + 1 <= ghost_cols - 1:
+        if ghost_cols - j - 1:
           tmp.append((i, j + 1)) # right point
-        if i + 1 <= ghost_rows - 1 and j - 1 >= 0: 
+        if ghost_rows - i - 1 and j: 
           tmp.append((i + 1, j - 1)) # left bottom point
           tmp.append((i + 1, j)) # bottom point
-          if j + 1 <= ghost_cols - 1:
+          if ghost_cols - j - 1:
             tmp.append((i + 1, j + 1)) # bottom right point
         self.hash_map[(i,j)] = tmp 
-     
-  
+    
+   
   def mapping(self, ghost_grid_point):
-
+    '''
+       Mapping relation between ghost_grid and grid. 
+       Input a coord index and return a coord in original word grid.
+       This function helps to save the space.
+    '''
     i = ghost_grid_point[0]
     j = ghost_grid_point[1]
     
@@ -97,6 +106,10 @@ class SuperWordSearchPuzzle(Exception):
  
   
   def restore_path(self, path):  
+    '''
+       Restore the path in original grid using mapping function.
+       Input a path in ghost_grid and return a path in original grid.
+    '''
     original_path = []
     for indx in path:
       temp = self.mapping(indx)
@@ -105,44 +118,58 @@ class SuperWordSearchPuzzle(Exception):
 
         
   def find_paths(self):
+    '''Find paths of input pesudo super words.'''
     return [self.find_path(word) for word in self.swords]
 
 
   def find_path(self, word):
-    flag = False # use flag to sign if exists a start point
+    '''Find the path of a word in original grid.'''
+    flag = False # use var flag to sign if exists a start point
+     
+    # for-loops for every same starting_point in ghost_grid
+    # flag to make sure point in original grid.
     for i in range(len(self.ghost_grid)):
       for j in range(len(self.ghost_grid[0])):
-        if self.ghost_grid[i][j] == word[0] and self.ghost_grid_flag[i][j] == False: 
+        if self.ghost_grid[i][j] == word[0] and self.ghost_grid_flag[i][j] == False: # find starting point in original grid(flag of them are False)
           starting_point = (i, j)
-          path = self.search_word(starting_point, word)
-          if path:
+          path = self.search_word(starting_point, word) # Submodule of find_path
+          if path: # if there exists a path, set flag True, link the path with starting_point, the path will be checked below
             path = [starting_point] + path
             flag = True
           else:
             continue
+          # path checking
+          # restore the path in original grid
           path_coord = self.restore_path(path)
-
           tmp_dict = {} 
+          # tmp_dict make sure that each point in the original grid must be used only once
           for key in path_coord:
             if key in tmp_dict.keys():
               flag = False
               break
             tmp_dict[key] = 1
+          # pass the checking and print the start and end point here
           if flag == True:
             print path_coord[0], path_coord[-1]
             return path_coord
+       
+    # search failed and print 'NOT FOUND'
     if flag == False:
       print 'NOT FOUND'
       return None
-
+   
+  
   def search_word(self, start_point, word):
+    '''Submodule of find_path.'''
     path = []
+    # var cross to sign if go through a ghost point which means wrap
     cross = False
     flag = False
     for indx in self.hash_map[start_point]:
       if self.ghost_grid[indx[0]][indx[1]] == word[1] and indx not in path:
         if self.ghost_grid_flag[indx[0]][indx[1]] == True:
           cross = True
+        # boundary condition of recursively the function
         if len(word) == 2:
           if not (self.is_wrap == False and cross == True):
             return [indx]
@@ -150,6 +177,9 @@ class SuperWordSearchPuzzle(Exception):
             break
         flag = True
         path.append(indx)
+        # call search_word recursively
+        # stack may not overflow because the depth is really small in this function
+        # believe me
         path_after = self.search_word(indx, word[1:])
         if not path_after:
           flag = False
@@ -158,15 +188,18 @@ class SuperWordSearchPuzzle(Exception):
           continue
         path += path_after
         break
+    
     if flag == False:
       return None
     if self.is_wrap == False and cross == True: 
       return None
+    
     return path    
-
-
+    
+    
 if __name__ == '__main__':
   r = LoadInput('test.txt')
   grid, is_wrap, swords = r.getData()
   a = SuperWordSearchPuzzle(grid, swords, is_wrap)
   a.find_paths()
+  # write more test code here!!

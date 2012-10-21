@@ -10,12 +10,13 @@ import re
 class LoadInput(Exception):
   
   def __init__(self, input_file):
-    '''Initializes the LoadInput class'''
+    '''Initializes the LoadInput class.'''
     f = file(input_file, 'r')
     self.content = f.read()
     f.close()
         
   def getData(self):
+    '''Load input to memory.'''
     pattern = re.compile(r'''
       (?P<rows>\d+)            # number of rows
       [ ]                      # a space

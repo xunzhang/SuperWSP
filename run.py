@@ -5,16 +5,17 @@
 __author__ = ['Hong Wu<xunzhangthu@gmail.com>']
 
 import sys
-from load import LoadInput
-from superWSP import SuperWordSearchPuzzle
+import src.packages as namespace
+#from load import LoadInput
+#from superWSP import SuperWordSearchPuzzle
 
 if __name__ == '__main__':
   
   if len(sys.argv) != 2:
-    print 'Illegal input!!'
+    print 'Illegal input, see README please!'
     sys.exit()
   
-  input_obj = LoadInput(sys.argv[1])
+  input_obj = namespace.LoadInput(sys.argv[1])
   grid, is_wrap, swords = input_obj.getData()
-  search_obj = SuperWordSearchPuzzle(grid, swords, is_wrap)
+  search_obj = namespace.SuperWordSearchPuzzle(grid, swords, is_wrap)
   search_obj.find_paths()

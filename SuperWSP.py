@@ -134,26 +134,35 @@ class SuperWordSearchPuzzle(Exception):
       print 'NOT FOUND'
       return None
 
-      
   def search_word(self, start_point, word):
     path = [start_point]
     cross = False
-    for w in word[1:]:
-      flag = False
-      queue = []
-      for indx in self.hash_map[start_point]:
-        if self.ghost_grid[indx[0]][indx[1]] == w and indx not in path:
-          if self.ghost_grid_flag[indx[0]][indx[1]] == True:
-            cross = True
-          flag = True
-          path.append(indx)
-          start_point = indx
-          break
-      if flag == False:
-        return None    
-      if self.is_wrap == False and cross == True:
-        return None
-    return path
+    flag = False
+    for indx in self.hash_map[start_point]:
+      if self.ghost_grid[indx[0]][indx[1]] == word[1] and indx not in path:
+        if self.ghost_grid_flag[indx[0]][indx[1]] == True:
+          cross = True
+        if len(word) == 2:
+          if not (self.is_wrap == False and cross == True):
+            return [indx]
+          else:
+            break
+        flag = True
+        path.append(indx)
+        path_after = self.search_word(indx, word[1:])
+        if not path_after:
+          flag = False
+          cross = False
+          path.pop()
+          continue
+        path += path_after
+        break
+    if flag == False:
+      return None
+    if self.is_wrap == False and cross == True: 
+      return None
+    
+    return path    
 
 
 if __name__ == '__main__':

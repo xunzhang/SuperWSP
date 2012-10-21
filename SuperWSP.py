@@ -115,9 +115,10 @@ class SuperWordSearchPuzzle(Exception):
         if self.ghost_grid[i][j] == word[0] and self.ghost_grid_flag[i][j] == False: 
           starting_point = (i, j)
           path = self.search_word(starting_point, word)
-          flag = True
-          if not path:
-            flag = False
+          if path:
+            path = [starting_point] + path
+            flag = True
+          else:
             continue
           path_coord = self.restore_path(path)
 
@@ -135,7 +136,7 @@ class SuperWordSearchPuzzle(Exception):
       return None
 
   def search_word(self, start_point, word):
-    path = [start_point]
+    path = []
     cross = False
     flag = False
     for indx in self.hash_map[start_point]:
@@ -161,7 +162,6 @@ class SuperWordSearchPuzzle(Exception):
       return None
     if self.is_wrap == False and cross == True: 
       return None
-    
     return path    
 
 
